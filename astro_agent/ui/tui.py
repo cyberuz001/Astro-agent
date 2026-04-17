@@ -176,26 +176,15 @@ Screen {
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #  Components
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-class ProcessingOrb(Static):
+class ProcessingInline(Static):
     def on_mount(self) -> None:
-        self.frames = ["·", "•", "●", "•"]
+        self.frames = ["✶", "✸", "✹", "✺", "✹", "✸", "✶"]
         self.idx = 0
-        self.active_text = ""
-        self.is_active = False
-        self.timer = self.set_interval(0.15, self.tick)
+        self.timer = self.set_interval(0.1, self.tick)
 
     def tick(self) -> None:
-        if self.is_active:
-            self.idx = (self.idx + 1) % len(self.frames)
-            self.update(f"[#9ece6a]{self.frames[self.idx]}[/] {self.active_text}")
-        else:
-            self.update(self.active_text)
-
-    def set_status(self, active: bool, text: str):
-        self.is_active = active
-        self.active_text = text
-        if not active:
-            self.update(text)
+        self.idx = (self.idx + 1) % len(self.frames)
+        self.update(f"[bold #9ece6a]●[/] [bold #9ece6a]Astro[/]\n[#e0af68]{self.frames[self.idx]}[/]")
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -224,8 +213,8 @@ class AstroApp(App):
         with Horizontal(id="input-bar"):
             yield Label("❯ ", id="prompt-label")
             yield Input(placeholder="", id="user-input")
-        # Status line at bottom (ProcessingOrb)
-        yield ProcessingOrb(id="status-line")
+        # Status line at bottom
+        yield Static(id="status-line")
 
     def on_mount(self) -> None:
         self.query_one("#user-input", Input).focus()
@@ -247,12 +236,14 @@ class AstroApp(App):
         )
 
     def _update_status(self, state: str):
-        orb = self.query_one("#status-line", ProcessingOrb)
-        dt = datetime.now().strftime("%H:%M")
-        deep = "on" if self.deep_thinking else "off"
-        chat_label = self.chat_title[:28] if self.chat_title else "new chat"
-        full_text = f" {state} · {chat_label} · deep:{deep} · {dt}"
-        orb.set_status(state == "THINKING", full_text)
+        try:
+            bar = self.query_one("#status-line", Static)
+            dt = datetime.now().strftime("%H:%M")
+            deep = "on" if self.deep_thinking else "off"
+            chat_label = self.chat_title[:28] if self.chat_title else "new chat"
+            bar.update(f" {state} · {chat_label} · deep:{deep} · {dt}")
+        except:
+            pass
 
     # ── Message rendering ──────────────────────────────────────────────────
     def _post(self, role: str, content: str):
@@ -491,6 +482,9 @@ class AstroApp(App):
         if not self.chat_title:
             self.chat_title = raw[:50]
         self._update_status("THINKING")
+        proc = ProcessingInline(id="processing-loader")
+        self.query_one("#chat-scroll", VerticalScroll).mount(proc)
+        self.query_one("#chat-scroll", VerticalScroll).scroll_end(animate=False)
         self.execute_graph(raw)
 
     # ── LangGraph worker ──────────────────────────────────────────────────
@@ -502,6 +496,14 @@ class AstroApp(App):
                 "deep_think": self.deep_thinking,
                 "session_id": self.chat_id,
             })
+            
+            def remove_loader():
+                try:
+                    self.query_one("#processing-loader").remove()
+                except:
+                    pass
+            self.call_from_thread(remove_loader)
+
             new_msgs = final_state["messages"][len(self.chat_history):]
             out_content = ""
             if new_msgs:

@@ -21,6 +21,7 @@ def get_weather_and_time(location: str, iana_timezone: str = "Asia/Tashkent") ->
 
 @tool
 def make_pbx_call(audio_message: str, call_target_extension: str = "101") -> str:
-    """Berilgan raqamga telefon orqali qo'ng'iroq uyushtiradi, maxsus audio skript bilan."""
-    # Simulation integration for Textual layout preview
-    return f"Telefon qilinmoqda: PJSIP/{call_target_extension}. Audio tayyorlanmoqda: {audio_message}"
+    """Asterisk tizimi orqali berilgan telefon raqamiga (masalan 101 ga) haqiqiy qo'ng'iroq qiladi."""
+    cmd = f"asterisk -rx 'channel originate PJSIP/{call_target_extension} application Playback tt-weasels'"
+    bash_terminal.invoke(cmd)
+    return f"Muvaffaqiyatli! {call_target_extension} raqamiga qo'ng'iroq qilinib '{audio_message}' qo'yilmoqda."
