@@ -3,7 +3,7 @@ import sys
 import os
 
 # Server-specific Virtual Environment Auto-Boot Sequence
-SERVER_PYTHON = "/home/user/gemma-telegram-bot/venv/bin/python3"
+SERVER_PYTHON = "/home/user/astro-agent/venv/bin/python3"
 if os.path.exists(SERVER_PYTHON) and sys.executable != SERVER_PYTHON:
     os.execl(SERVER_PYTHON, SERVER_PYTHON, *sys.argv)
 
