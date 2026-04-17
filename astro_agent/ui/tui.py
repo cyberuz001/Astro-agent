@@ -184,7 +184,7 @@ class ProcessingInline(Static):
 
     def tick(self) -> None:
         self.idx = (self.idx + 1) % len(self.frames)
-        self.update(f"[bold #9ece6a]●[/] [bold #9ece6a]Astro[/]\n[#e0af68]{self.frames[self.idx]}[/]")
+        self.update(f"[bold #9ece6a]●[/] [bold #9ece6a]Astro[/] [#e0af68]{self.frames[self.idx]}[/]")
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -264,9 +264,9 @@ class AstroApp(App):
         }
         prefix = prefix_map.get(role, "")
         if prefix:
-            text = f"{prefix}\n{content.strip()}\n"
+            text = f"{prefix}\n{content.strip()}"
         else:
-            text = f"{content.strip()}\n"
+            text = f"{content.strip()}"
         scroll.mount(Static(text, classes=cls))
         scroll.scroll_end(animate=False)
 
