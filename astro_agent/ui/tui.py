@@ -95,15 +95,8 @@ Input:focus { border: none; }
 }
 
 .thinking {
-    animation: flash 1.2s ease-in-out infinite;
     color: #d29922;
     border: solid #d29922;
-}
-
-@keyframes flash {
-    0% { opacity: 1.0; }
-    50% { opacity: 0.1; }
-    100% { opacity: 1.0; }
 }
 
 /* Matrix Background Component */
@@ -111,7 +104,7 @@ Input:focus { border: none; }
     width: 100%;
     height: 100%;
     color: #3fb950;
-    opacity: 0.08;
+    opacity: 0.15;
     layer: background;
 }
 
@@ -125,14 +118,14 @@ class CyberHeader(Static):
 class MatrixRain(Static):
     def on_mount(self):
         self._rain = [
-            "010101110001   1 0 11  01  0 011  01 1010  1  0",
-            "  1101   10101  0   10 101 0   0 11 1   10  1 0",
-            "11 1 01 0   11   01  0 10  0 1000  01 01  11  0",
-            " 01 1 10 110  1 00  1 1 00  0 0  10 11 0  01  1"
+            "  010101110001   1 0 11  01  0 011  01 1010  1  0  ",
+            "    1101   10101  0   10 101 0   0 11 1   10  1 0  ",
+            "  11 1 01 0   11   01  0 10  0 1000  01 01  11  0  ",
+            "   01 1 10 110  1 00  1 1 00  0 0  10 11 0  01  1  "
         ]
         self._step = 0
         self.update("\\n".join(self._rain))
-        self.set_interval(0.2, self.tick)
+        self.set_interval(0.6, self.tick)  # Reduced frequency for high performance
 
     def tick(self):
         self._step += 1
