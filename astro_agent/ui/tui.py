@@ -178,7 +178,7 @@ class AstroApp(App):
         self.add_message("System", welcome_msg)
         
         # Deploy PBX Monitoring daemon
-        self.run_worker(self.voice_monitor_task(), thread=True)
+        self.run_worker(self.voice_monitor_task, thread=True)
 
     def voice_monitor_task(self):
         bridge = Path("/tmp/voice_bridge.txt")
