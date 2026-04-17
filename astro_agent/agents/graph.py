@@ -57,7 +57,7 @@ def reflect_node(state: AgentState):
     llm = get_llm()
     last = state["messages"][-1].content
     resp = llm.invoke([SystemMessage(content=f"Asl javobingiz: '{last}'. Mantig'ini tekshiring, ishonch komil qiling. Xato bormi? Qisqacha o'zingizga izoh qoldiring.")])
-    return {"messages": [AIMessage(content=f"{last}\\n\\n[Astro Reflection]: {resp.content}")]}
+    return {"messages": [AIMessage(content=f"{last}\n\n[Astro Reflection]: {resp.content}")]}
 
 def should_continue(state: AgentState) -> Literal["action", "reflect", "__end__"]:
     msg = state["messages"][-1]

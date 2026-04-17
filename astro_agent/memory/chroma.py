@@ -24,7 +24,7 @@ try:
             return self.model
 
         def memorize(self, session_id: str, human_text: str, ai_text: str):
-            doc = f"User: {human_text}\\nAstro: {ai_text}"
+            doc = f"User: {human_text}\nAstro: {ai_text}"
             embedding = self._get_model().encode([doc]).tolist()
             doc_id = f"{session_id}_{uuid.uuid4().hex[:6]}"
             
@@ -46,9 +46,9 @@ try:
             if not results['documents'] or not results['documents'][0]:
                 return ""
             
-            context = "Xotiradan parchalar:\\n"
+            context = "Xotiradan parchalar:\n"
             for doc in results['documents'][0]:
-                context += f"---\\n{doc}\\n"
+                context += f"---\n{doc}\n"
             return context
 
     memory_client = LongTermMemory()
