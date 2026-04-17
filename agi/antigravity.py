@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/home/user/gemma-telegram-bot/venv/bin/python3
 """
 ASTRO AGI Voice Engine — Asterisk Gateway Interface
 Handles voice calls with AI-powered conversation in Uzbek
@@ -95,24 +95,37 @@ def transcribe(wav_path):
         broadcast(f"STT Error: {e}", "SYSTEM")
         return ""
 
-def get_weather_and_time(location="Tashkent"):
-    if not WEATHER_API_KEY:
-        # Fallback to just time
-        now = datetime.now()
-        months = ["yanvar","fevral","mart","aprel","may","iyun","iyul","avgust","sentyabr","oktyabr","noyabr","dekabr"]
-        return f"Hozir {now.year}-yil {now.day}-{months[now.month-1]}, soat {now.hour}:{now.minute:02d}"
-    url = f"http://api.openweathermap.org/data/2.5/weather?q={location}&appid={WEATHER_API_KEY}&units=metric&lang=uz"
+def get_weather_and_time(location, iana_timezone="Asia/Tashkent"):
+    time_str = ""
     try:
-        data = requests.get(url, timeout=5).json()
-        if data.get("cod") != 200: return f"{location} topilmadi!"
-        temp = data["main"]["temp"]
-        desc = data["weather"][0]["description"]
-        tz_offset = data.get("timezone", 0)
-        local_time = datetime.utcnow() + timedelta(seconds=tz_offset)
-        months = ["yanvar","fevral","mart","aprel","may","iyun","iyul","avgust","sentyabr","oktyabr","noyabr","dekabr"]
-        return f"{location}: {local_time.year}-yil {local_time.day}-{months[local_time.month-1]}, soat {local_time.strftime('%H:%M')}. Harorat {temp}°C, {desc}."
+        if "time_now_offset" not in locals():
+            tz_req = requests.get(f"https://time.now/developer/api/timezone/{iana_timezone}", timeout=5).json()
+            if "datetime" in tz_req:
+                dt_iso = tz_req["datetime"]
+                # Manual parsing: 2026-04-17T16:13:00.123456+05:00
+                date_part, time_part = dt_iso.split("T")
+                time_part = time_part[:5] # "16:13"
+                y, m, d = date_part.split("-")
+                months = ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avgust", "sentyabr", "oktyabr", "noyabr", "dekabr"]
+                time_str = f"{y}-yil {int(d)}-{months[int(m)-1]}, soat {time_part}"
+    except:
+        time_str = "Vaqtni aniqlab bo'lmadi."
+
+    try:
+        api_key = config.get("weather_api_key", "") if "config" in globals() else WEATHER_API_KEY
+        if api_key:
+            url = f"http://api.openweathermap.org/data/2.5/weather?q={location}&appid={api_key}&units=metric&lang=uz"
+            data = requests.get(url, timeout=8).json()
+            if data.get("cod") == 200:
+                temp = data["main"]["temp"]
+                desc = data["weather"][0]["description"]
+                weather_str = f"Ob-havo: harorat {temp}°C, {desc}."
+                return f"{location}: {time_str}. {weather_str}"
+            else:
+                return f"{location}: {time_str}. Ob-havo aniqlanmadi."
+        return f"{location}: {time_str}."
     except Exception as e:
-        return f"Ob-havo xatosi: {e}"
+        return f"Xato: {e}"
 
 def run_cmd(cmd):
     try:
@@ -122,13 +135,13 @@ def run_cmd(cmd):
 
 TOOLS = [
     {"type":"function","function":{"name":"run_terminal","description":"Tizim buyruqlari","parameters":{"type":"object","properties":{"command":{"type":"string"}},"required":["command"]}}},
-    {"type":"function","function":{"name":"get_weather_and_time","description":"Shahar bo'yicha ob-havo va aniq vaqtni bilish","parameters":{"type":"object","properties":{"location":{"type":"string"}},"required":["location"]}}}
+    {"type":"function","function":{"name":"get_weather_and_time","description":"Ixtiyoriy shahar yoki davlat bo'yicha HOZIRGI ANIQ VAQT, sana va ob-havo ma'lumotini olish. Masalan: Toshkent, London. IANA timezone ham yuborilishi shart (masalan 'Asia/Tashkent')","parameters":{"type":"object","properties":{"location":{"type":"string","description":"Shahar nomi"},"iana_timezone":{"type":"string","description":"IANA timezone, masalan, Asia/Tashkent, Europe/London"}},"required":["location", "iana_timezone"]}}}},"required":["location"]}}}
 ]
 
-BASE_PROMPT = """Siz Astro — telefon orqali gaplashuvchi AI agentsiz. OVOZLI suhbatdasiz!
-1. Jumlalar qisqa va ODAMDAY bo'lsin. Sof o'zbek tilida gapiring.
-2. Vaqt yoki ob-havo so'ralsa DARHOL get_weather_and_time ishlating!
-3. Rahmat desa, xayrlashing."""
+BASE_PROMPT = """Siz Astro — oliy darajadagi Avtonom Voice AI Agentsiz. Telefon qo'ng'irogidasiz!
+1. FAQAT foydalanuvchi ob-havo, soat, kun so'rasagina get_weather_and_time asbobidan foydalaning. "Salom" desa odamday salomlashing, o'zingizdan asbob ishlatmang.
+2. Jumlalar qisqa, tushunarli va odamdek sof O'zbek tilida bo'lsin.
+3. "Rahmat" desa xayrlashib tugating."""
 
 def main():
     global active_mission, full_transcript
@@ -217,7 +230,7 @@ def main():
                         args = json.loads(tc["function"]["arguments"])
                         broadcast(f"[⚙️ {fn}]", "SYSTEM")
                         if fn == "run_terminal": res = run_cmd(args.get("command",""))
-                        elif fn == "get_weather_and_time": res = get_weather_and_time(args.get("location","Tashkent"))
+                        elif fn == "get_weather_and_time": res = get_weather_and_time(args.get("location","Tashkent"), args.get("iana_timezone", "Asia/Tashkent"))
                         else: res = "OK"
                         hist.append({"role":"tool","tool_call_id":tc["id"],"name":fn,"content":str(res)[:1000]})
                     continue
