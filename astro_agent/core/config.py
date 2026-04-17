@@ -13,7 +13,7 @@ DEFAULT_CONFIG = {
     "provider": "openrouter",
     "providers": {
         "openrouter": {
-            "url": "https://openrouter.ai/api/v1/chat/completions",
+            "url": "https://openrouter.ai/api/v1",
             "key": "",
             "model": "google/gemini-2.0-flash-lite-001"
         }

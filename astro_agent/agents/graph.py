@@ -23,10 +23,14 @@ class AgentState(TypedDict):
 def get_llm():
     p = config.get("provider", "openrouter")
     prov = config.get("providers", {}).get(p, {})
+    base = prov.get("url", "https://openrouter.ai/api/v1")
+    if base.endswith("/chat/completions"):
+        base = base.replace("/chat/completions", "")
+        
     return ChatOpenAI(
         model=prov.get("model", "google/gemini-2.0-flash-lite-001"),
         api_key=prov.get("key", ""),
-        base_url=prov.get("url", "https://openrouter.ai/api/v1"),
+        base_url=base,
         temperature=0.1
     )
 
