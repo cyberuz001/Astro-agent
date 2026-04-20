@@ -80,6 +80,15 @@ class AstroApp:
         self.running = True
 
     def _monitor_voice_bridge(self):
+        from prompt_toolkit.application.current import get_app
+
+        def safe_print(*args):
+            app = get_app()
+            if app and app.is_running:
+                app.run_in_terminal(lambda: console.print(*args))
+            else:
+                console.print(*args)
+
         bridge = "/tmp/voice_bridge.txt"
         try:
             if not os.path.exists(bridge):
@@ -100,21 +109,16 @@ class AstroApp:
                         continue
                     if "[User]" in line:
                         txt = line.replace('[User]', '').strip()
-                        sys.stderr.write(f"\x1b[1;34m📞 {txt}\x1b[0m\n")
-                        sys.stderr.flush()
+                        safe_print(f"[user]📞 {txt}[/user]")
                     elif "[Agent]" in line:
                         txt = line.replace('[Agent]', '').strip()
-                        sys.stderr.write(f"\x1b[1;32m🎤 {txt}\x1b[0m\n")
-                        sys.stderr.flush()
+                        safe_print(f"[astro]🎤 {txt}[/astro]")
                     elif "Kiruvchi" in line or "Chiquvchi" in line:
-                        sys.stderr.write(f"\x1b[2;37m━━ VoIP qo'ng'iroq boshlandi ━━\x1b[0m\n")
-                        sys.stderr.flush()
+                        safe_print("[system]━━ VoIP qo'ng'iroq boshlandi ━━[/system]")
                     elif "Yakunlandi" in line:
-                        sys.stderr.write(f"\x1b[2;37m━━ Aloqa uzildi ━━\x1b[0m\n")
-                        sys.stderr.flush()
+                        safe_print("[system]━━ Aloqa uzildi ━━[/system]")
                     else:
-                        sys.stderr.write(f"\x1b[2;37m{line}\x1b[0m\n")
-                        sys.stderr.flush()
+                        safe_print(f"[system]{line}[/system]")
         except:
             pass
 

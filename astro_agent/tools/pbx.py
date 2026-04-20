@@ -103,20 +103,19 @@ def make_pbx_call(audio_message: str, call_target_extension: str = "777") -> str
     """Asterisk tizimi orqali berilgan raqamga HAQIQIY telefon qo'ng'iroq qiladi.
     audio_message: telefon orqali aytish kerak bo'lgan matn
     call_target_extension: qo'ng'iroq qilinadigan raqam (masalan 777, 100)"""
-    # Write the outbound context message
+    # Write the outbound context message and force it to be interactive
     try:
         with open("/tmp/agi_outbound_msg.txt", "w") as f:
-            f.write(audio_message)
+            f.write(f"{audio_message} Boshqa savollaringiz bormi?")
         with open("/tmp/agi_outbound_context.txt", "w") as f:
             f.write(f"Foydalanuvchi so'rovi: {audio_message}")
     except:
         pass
 
-    # Originate call with CallerID=777
+    # Originate call using extension 778 which guarantees CallerID matches 777
     cmd = (
         f'sudo asterisk -rx \''
-        f'channel originate Local/{call_target_extension}@from-internal '
-        f'application AGI antigravity.py,custom_call\''
+        f'channel originate PJSIP/{call_target_extension} extension 778@from-internal\''
     )
     result = bash_terminal.invoke(cmd)
     return f"Qo'ng'iroq yuborildi: {call_target_extension} raqamiga. Natija: {result}"
