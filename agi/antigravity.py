@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/home/user/astro-agent/venv/bin/python3
 """
 ASTRO AGI Voice Engine — Asterisk Gateway Interface
 Handles voice calls with AI-powered conversation in Uzbek
@@ -79,7 +79,8 @@ def say_uz(text):
 _global_vosk_model = None
 def transcribe(wav_path):
     global _global_vosk_model
-    from vosk import Model, KaldiRecognizer
+    from vosk import Model, KaldiRecognizer, SetLogLevel
+    SetLogLevel(-1)
     if not os.path.exists(MODEL_PATH) or not os.path.exists(wav_path): return ""
     try:
         if os.path.getsize(wav_path) < 1000: return ""
