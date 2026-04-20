@@ -22,38 +22,30 @@ def _format_uz_time(iso_str: str) -> str:
         hour24 = int(h)
         minute = int(m)
 
-        # 12-hour conversion with time-of-day
+        # 12-hour conversion
+        period = "tungi"
         if 5 <= hour24 < 11:
             period = "ertalabki"
         elif 11 <= hour24 < 14:
             period = "tushki"
         elif 14 <= hour24 < 18:
-            period = "kunduzi"
+            period = "kunduzgi"
         elif 18 <= hour24 < 22:
             period = "kechki"
-        else:
-            period = "tungi"
 
         hour12 = hour24 % 12
         if hour12 == 0:
             hour12 = 12
 
-        # Date
         y, mo, d = date_part.split("-")
         months = ["yanvar", "fevral", "mart", "aprel", "may", "iyun",
                    "iyul", "avgust", "sentyabr", "oktyabr", "noyabr", "dekabr"]
-        date_str = f"{y}-chi yil {int(d)}-chi {months[int(mo)-1]}"
+        oy_nomi = months[int(mo) - 1]
 
-        # Time phrase
-        if minute == 0:
-            time_str = f"{period} soat {hour12} bo'ldi"
-        elif minute == 30:
-            time_str = f"{period} {hour12}dan yarim soat o'tdi"
-        else:
-            time_str = f"{period} soat {hour12}dan {minute} daqiqa o'tdi"
-
-        return f"Hozir {date_str}, {time_str}."
-    except:
+        m_text = f"{minute} daqiqa o'tdi" if minute > 0 else "aniq"
+        
+        return f"{y}-inchi yil {int(mo)}-inchi oy {int(d)}-inchi {oy_nomi} soat {period} {hour12}-dan {m_text}"
+    except Exception as e:
         return f"Vaqt: {iso_str}"
 
 
