@@ -29,7 +29,8 @@ except: pass
 # Load API keys from astro config if available
 try:
     import pathlib
-    cfg_path = pathlib.Path.home() / ".astro" / "config.json"
+    # Force read from /home/user because asterisk's home is /var/lib/asterisk/
+    cfg_path = pathlib.Path("/home/user/.astro/config.json")
     if cfg_path.exists():
         _cfg = json.loads(cfg_path.read_text())
         _prov = _cfg.get("providers", {}).get(_cfg.get("provider", "openrouter"), {})
