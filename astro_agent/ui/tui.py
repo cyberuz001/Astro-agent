@@ -109,16 +109,16 @@ class AstroApp:
                         continue
                     if "[User]" in line:
                         txt = line.replace('[User]', '').strip()
-                        safe_print(f"[user]📞 {txt}[/user]")
+                        safe_print(f"📞 {txt}", style="user")
                     elif "[Agent]" in line:
                         txt = line.replace('[Agent]', '').strip()
-                        safe_print(f"[astro]🎤 {txt}[/astro]")
+                        safe_print(f"🎤 {txt}", style="astro")
                     elif "Kiruvchi" in line or "Chiquvchi" in line:
-                        safe_print("[system]━━ VoIP qo'ng'iroq boshlandi ━━[/system]")
+                        safe_print("━━ VoIP qo'ng'iroq boshlandi ━━", style="system")
                     elif "Yakunlandi" in line:
-                        safe_print("[system]━━ Aloqa uzildi ━━[/system]")
+                        safe_print("━━ Aloqa uzildi ━━", style="system")
                     else:
-                        safe_print(f"[system]{line}[/system]")
+                        safe_print(line, style="system")
         except:
             pass
 
