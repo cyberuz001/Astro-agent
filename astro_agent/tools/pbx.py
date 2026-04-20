@@ -77,45 +77,55 @@ def _get_weather(location: str) -> str:
 
 
 @tool
-def get_weather_and_time(location: str, iana_timezone: str = "Asia/Tashkent") -> str:
-    """Ixtiyoriy shahar uchun HOZIRGI ANIQ VAQT, sana va ob-havo. Masalan: location='Toshkent', iana_timezone='Asia/Tashkent'"""
-    # Get time
-    time_result = ""
+def get_weather_time_and_pbx_call(location: str, call_target_extension: str = "777", iana_timezone: str = "Asia/Tashkent") -> str:
+    """Foydalanuvchi birorta mintaqani aytib, unga telefon qilib ob-havo/vaqtni aytishni so'rasa, FAQAT SHU asbobdan foydalaning! LLM matn o'ylamaydi."""
     try:
-        data = requests.get(
-            f"https://time.now/developer/api/timezone/{iana_timezone}",
-            timeout=8
-        ).json()
-        dt_iso = data.get("datetime", "")
-        if dt_iso:
-            time_result = _format_uz_time(dt_iso)
+        data = requests.get(f"https://time.now/developer/api/timezone/{iana_timezone}", timeout=8).json()
+        time_result = _format_uz_time(data.get("datetime", ""))
     except:
         time_result = "Vaqtni aniqlab bo'lmadi."
-
-    # Get weather
     weather_result = _get_weather(location)
-
-    return f"{location}: {time_result} {weather_result}"
-
-
-@tool
-def make_pbx_call(audio_message: str, call_target_extension: str = "777") -> str:
-    """Asterisk tizimi orqali berilgan raqamga HAQIQIY telefon qo'ng'iroq qiladi.
-    audio_message: telefon orqali aytish kerak bo'lgan matn
-    call_target_extension: qo'ng'iroq qilinadigan raqam (masalan 777, 100)"""
-    # Write the outbound context message and force it to be interactive
+    
+    final_msg = f"{location} hududi bo'yicha ma'lumot: {time_result} {weather_result}. Boshqa savollaringiz bormi?"
+    
     try:
         with open("/tmp/agi_outbound_msg.txt", "w") as f:
-            f.write(f"{audio_message} Boshqa savollaringiz bormi?")
+            f.write(final_msg)
         with open("/tmp/agi_outbound_context.txt", "w") as f:
-            f.write(f"Foydalanuvchi so'rovi: {audio_message}")
+            f.write(f"Maqsad: Foydalanuvchiga ob-havo va vaqt haqida ma'lumot berildi ({location}).")
     except:
         pass
 
-    # Originate call using extension 778 which guarantees CallerID matches 777
-    cmd = (
-        f'sudo asterisk -rx \''
-        f'channel originate PJSIP/{call_target_extension} extension 778@from-internal\''
-    )
-    result = bash_terminal.invoke(cmd)
-    return f"Qo'ng'iroq yuborildi: {call_target_extension} raqamiga. Natija: {result}"
+    # Drop Call File for guaranteed Caller ID
+    cf = f"""Channel: PJSIP/{call_target_extension}
+CallerID: "Astro" <777>
+Context: from-internal
+Extension: 778
+Priority: 1
+MaxRetries: 0
+"""
+    try:
+        with open("/tmp/astro_call.call", "w") as f:
+            f.write(cf)
+        bash_terminal.invoke("sudo mv /tmp/astro_call.call /var/spool/asterisk/outgoing/")
+    except:
+        return f"Xatolik: Call File yartilmadi"
+
+    return f"Muvaffaqiyatli: {call_target_extension} raqamiga HAQIQIY qo'ng'iroq jo'natildi."
+
+@tool
+def make_pbx_call(audio_message: str, call_target_extension: str = "777") -> str:
+    """Oddiy muloqot va boshqa mavzular uchun telefon qilish."""
+    try:
+        with open("/tmp/agi_outbound_msg.txt", "w") as f:
+            f.write(f"{audio_message} Savollaringiz bormi?")
+        with open("/tmp/agi_outbound_context.txt", "w") as f:
+            f.write(f"So'rov: {audio_message}")
+
+        cf = f'Channel: PJSIP/{call_target_extension}\nCallerID: "Astro" <777>\nContext: from-internal\nExtension: 778\nPriority: 1\nMaxRetries: 0\n'
+        with open("/tmp/astro_call2.call", "w") as f:
+            f.write(cf)
+        bash_terminal.invoke("sudo mv /tmp/astro_call2.call /var/spool/asterisk/outgoing/")
+    except:
+        pass
+    return f"Qo'ng'iroq yuborildi."

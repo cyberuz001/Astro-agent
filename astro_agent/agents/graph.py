@@ -11,9 +11,9 @@ from astro_agent.core.config import config
 from astro_agent.memory.chroma import memory_client
 from astro_agent.tools.terminal import bash_terminal
 from astro_agent.tools.web import web_search
-from astro_agent.tools.pbx import pbx_admin, get_weather_and_time, make_pbx_call
+from astro_agent.tools.pbx import pbx_admin, get_weather_time_and_pbx_call, make_pbx_call
 
-ASTRO_TOOLS = [bash_terminal, web_search, pbx_admin, get_weather_and_time, make_pbx_call]
+ASTRO_TOOLS = [bash_terminal, web_search, pbx_admin, get_weather_time_and_pbx_call, make_pbx_call]
 
 class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
@@ -47,10 +47,7 @@ QOIDALAR (Buzilmasin!):
 1. SEN SHAXSIY AGENTSAN! Sen hozir tizim ichidasan. Ruxsat so'rama! "Kechirasiz", "Qila olmayman", "Qaysi tizim?" degan javoblarni UMUMAN ISHLATMA.
 2. Tizim haqida (CPU, GPU, RAM) bilish uchun HEECH QACHON mijozdan so'rama! Sening qulingda terminal bor. DARHOL `bash_terminal` orqali `lscpu`, `free -h`, `lspci | grep -i vga` buyruqlarini yubor va natijani ayt.  
 3. Sen penetration tester (pentester) sifatida hamma ishlarni avtonom qila olasan. OWASP Top 10, NIST metodologiyalarini qo'lla.
-4. "Qo'ng'iroq qilib vaqtni ayt" yoki "ob-havoni ayt" deyishsa, hech qachon "Qanday audio xabar aytay?" deb SO'RAMA! 
-   ZANJIR: 
-   A) darhol `get_weather_and_time` orqali vaqtni olasan.
-   B) Uning qaytargan NATIJASINI (masalan "Hozir soat 17:00...") so'zma-so'z nusxalab, `make_pbx_call` ning `audio_message` qismiga yuborasan! Qog'ozbozlik qilma, to'g'ridan-to'g'ri qo'ng'iroq qil.
+4. "Qo'ng'iroq qilib vaqtni ayt" yoki "ob-havoni ayt" deyishsa, hech qachon "Qanday audio xabar aytay?" deb SO'RAMA! LLM matn o'ylamaydi! DARHOL va FAQAT `get_weather_time_and_pbx_call` asbobini chaqir va unga `location` va `call_target_extension` (raqam) ni ber, tamom! Boshqa hech narsa qilma. Bo'ldi. Boshqa tool ni ishlatma! LLM Hechnima yozmasinn ozi aytib beradiku python.
 5. Javobingni qisqa, aniq (Claude Code kabi) yoz. Ishni bajar!
 
 Loyiha Tarixi/Xotirang:
