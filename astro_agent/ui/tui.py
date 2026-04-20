@@ -3,6 +3,7 @@ ASTRO V2.1 — Claude Code–style CLI UI
 Powered by prompt_toolkit and rich.
 """
 import os
+import sys
 import time
 import threading
 from datetime import datetime
@@ -50,6 +51,8 @@ SLASH_COMMANDS = {
     "/clear": "Ekranni tozalash",
     "/deep on": "Chuqur fikrlash yoqish",
     "/deep off": "Chuqur fikrlash o'chirish",
+    "/madina": "Madina ovoziga o'tish (ayol)",
+    "/sardor": "Sardor ovoziga o'tish (erkak)",
     "/cloud": "Cloud modelga o'tish",
     "/local": "Lokal modelga o'tish",
     "/settings": "Sozlamalar",
@@ -96,15 +99,22 @@ class AstroApp:
                     if not line:
                         continue
                     if "[User]" in line:
-                        console.print(f"[user]📞 {line.replace('[User]', '').strip()}[/user]")
+                        txt = line.replace('[User]', '').strip()
+                        sys.stderr.write(f"\x1b[1;34m📞 {txt}\x1b[0m\n")
+                        sys.stderr.flush()
                     elif "[Agent]" in line:
-                        console.print(f"[astro]🎤 {line.replace('[Agent]', '').strip()}[/astro]")
+                        txt = line.replace('[Agent]', '').strip()
+                        sys.stderr.write(f"\x1b[1;32m🎤 {txt}\x1b[0m\n")
+                        sys.stderr.flush()
                     elif "Kiruvchi" in line or "Chiquvchi" in line:
-                        console.print(f"[system]━━ VoIP qo'ng'iroq boshlandi ━━[/system]")
+                        sys.stderr.write(f"\x1b[2;37m━━ VoIP qo'ng'iroq boshlandi ━━\x1b[0m\n")
+                        sys.stderr.flush()
                     elif "Yakunlandi" in line:
-                        console.print(f"[system]━━ Aloqa uzildi ━━[/system]")
+                        sys.stderr.write(f"\x1b[2;37m━━ Aloqa uzildi ━━\x1b[0m\n")
+                        sys.stderr.flush()
                     else:
-                        console.print(f"[system]{line}[/system]")
+                        sys.stderr.write(f"\x1b[2;37m{line}\x1b[0m\n")
+                        sys.stderr.flush()
         except:
             pass
 
@@ -137,7 +147,9 @@ class AstroApp:
                 self._execute_graph(user_input)
 
             except KeyboardInterrupt:
-                continue
+                # Ctrl+C exits the app
+                console.print("\n[system]Sog' bo'ling![/system]")
+                break
             except EOFError:
                 break
             except Exception as e:
@@ -235,6 +247,20 @@ class AstroApp:
             console.print("[system]Cloud rejimida ishlanmoqda.[/system]")
         elif cmd == "/settings":
             console.print("[system]Sozlamalar paneli hali ishga tushirilmadi.[/system]")
+        elif cmd == "/madina":
+            try:
+                with open("/tmp/astro_voice.cfg", "w") as f:
+                    f.write("uz-UZ-MadinaNeural")
+                console.print("[astro]🎤 Ovoz: Madina (ayol) ga o'zgartirildi[/astro]")
+            except:
+                console.print("[error]Ovoz o'zgartirish xato[/error]")
+        elif cmd == "/sardor":
+            try:
+                with open("/tmp/astro_voice.cfg", "w") as f:
+                    f.write("uz-UZ-SardorNeural")
+                console.print("[astro]🎤 Ovoz: Sardor (erkak) ga o'zgartirildi[/astro]")
+            except:
+                console.print("[error]Ovoz o'zgartirish xato[/error]")
         else:
             console.print(f"[error]Noma'lum buyruq: {cmd}  —  /help[/error]")
 
