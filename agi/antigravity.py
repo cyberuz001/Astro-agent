@@ -135,13 +135,29 @@ def run_cmd(cmd):
 
 TOOLS = [
     {"type": "function", "function": {"name": "run_terminal", "description": "Tizim buyruqlari", "parameters": {"type": "object", "properties": {"command": {"type": "string"}}, "required": ["command"]}}},
-    {"type": "function", "function": {"name": "get_weather_and_time", "description": "Ixtiyoriy shahar yoki davlat bo'yicha HOZIRGI ANIQ VAQT, sana va ob-havo ma'lumotini olish. Masalan: Toshkent, London. IANA timezone ham yuborilishi shart (masalan 'Asia/Tashkent')", "parameters": {"type": "object", "properties": {"location": {"type": "string", "description": "Shahar nomi"}, "iana_timezone": {"type": "string", "description": "IANA timezone, masalan, Asia/Tashkent, Europe/London"}}, "required": ["location", "iana_timezone"]}}}
+    {"type": "function", "function": {"name": "get_weather_and_time", "description": "Ixtiyoriy shahar", "parameters": {"type": "object", "properties": {"location": {"type": "string"}, "iana_timezone": {"type": "string"}}, "required": ["location", "iana_timezone"]}}},
+    {"type": "function", "function": {"name": "save_user_name", "description": "Foydalanuvchining ismini yoki familiyasini eslab qolish uchun kiritish. Agar kishi o'z ismini aytsa zudlik bilan ushbu API ni ishlating.", "parameters": {"type": "object", "properties": {"user_name": {"type": "string"}}, "required": ["user_name"]}}}
 ]
 
-BASE_PROMPT = """Siz Astro — oliy darajadagi Avtonom Voice AI Agentsiz. Telefon qo'ng'irogidasiz!
-1. FAQAT foydalanuvchi ob-havo, soat, kun so'rasagina get_weather_and_time asbobidan foydalaning. "Salom" desa odamday salomlashing, o'zingizdan asbob ishlatmang.
-2. Jumlalar qisqa, tushunarli va odamdek sof O'zbek tilida bo'lsin.
-3. "Rahmat" desa xayrlashib tugating."""
+def save_name_to_file(name):
+    try:
+        with open("/tmp/astro_caller_name.txt", "w") as f:
+            f.write(name)
+        os.chmod("/tmp/astro_caller_name.txt", 0o666)
+    except: pass
+    return f"Ism eslab qolindi: {name}"
+
+current_user = ""
+try:
+    with open("/tmp/astro_caller_name.txt", "r") as f:
+        current_user = f.read().strip()
+except: pass
+
+user_context = f"\nFoydalanuvchining ismi: {current_user}" if current_user else "\nSiz foydalanuvchining ismini bilmaysiz. Suhbat orasida muloyimlik bilan bilintirmasdan ismini yoki familiyasini so'rab oling. Agar ismini aytsa SEZDIRMASDAN darhol 'save_user_name' funksiyasidan foydalanib yozib oling."
+
+BASE_PROMPT = f"""Siz Astro — oliy darajadagi Avtonom Voice AI Agentsiz. Telefon qo'ng'irogidasiz! 
+1. Jumlalar qisqa, tushunarli va odamdek sof O'zbek tilida bo'lsin. 
+2. 'Rahmat' desa xayrlashib tugating.{user_context}"""
 
 def main():
     global active_mission, full_transcript
@@ -231,6 +247,7 @@ def main():
                         broadcast(f"[⚙️ {fn}]", "SYSTEM")
                         if fn == "run_terminal": res = run_cmd(args.get("command",""))
                         elif fn == "get_weather_and_time": res = get_weather_and_time(args.get("location","Tashkent"), args.get("iana_timezone", "Asia/Tashkent"))
+                        elif fn == "save_user_name": res = save_name_to_file(args.get("user_name", ""))
                         else: res = "OK"
                         hist.append({"role":"tool","tool_call_id":tc["id"],"name":fn,"content":str(res)[:1000]})
                     continue
