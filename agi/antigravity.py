@@ -12,7 +12,7 @@ GEMMA_URL = "https://openrouter.ai/api/v1/chat/completions"
 WEATHER_API_KEY = ""
 
 BRIDGE_FILE = "/tmp/voice_bridge.txt"
-EDGE_TTS = "/home/user/gemma-telegram-bot/venv/bin/edge-tts"
+EDGE_TTS = "/home/user/astro-agent/venv/bin/edge-tts"
 FFMPEG = "/usr/bin/ffmpeg"
 MODEL_PATH = "/usr/share/asterisk/vosk-model"
 CONTEXT_FILE = "/tmp/agi_outbound_context.txt"
