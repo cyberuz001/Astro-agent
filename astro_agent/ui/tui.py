@@ -82,12 +82,12 @@ class AstroApp:
     def _monitor_voice_bridge(self):
         from prompt_toolkit.application.current import get_app
 
-        def safe_print(*args):
+        def safe_print(*args, **kwargs):
             app = get_app()
             if app and app.is_running:
-                app.run_in_terminal(lambda: console.print(*args))
+                app.run_in_terminal(lambda: console.print(*args, **kwargs))
             else:
-                console.print(*args)
+                console.print(*args, **kwargs)
 
         bridge = "/tmp/voice_bridge.txt"
         try:

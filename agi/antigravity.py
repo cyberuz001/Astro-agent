@@ -152,7 +152,7 @@ def run_cmd(cmd):
 
 TOOLS = [
     {"type": "function", "function": {"name": "run_terminal", "description": "Tizim buyruqlari", "parameters": {"type": "object", "properties": {"command": {"type": "string"}}, "required": ["command"]}}},
-    {"type": "function", "function": {"name": "get_weather_and_time", "description": "Ixtiyoriy shahar", "parameters": {"type": "object", "properties": {"location": {"type": "string"}, "iana_timezone": {"type": "string"}}, "required": ["location", "iana_timezone"]}}},
+    {"type": "function", "function": {"name": "get_weather_and_time", "description": "Ixtiyoriy shahar", "parameters": {"type": "object", "properties": {"location": {"type": "string"}, "iana_timezone": {"type": "string"}}, "required": ["location"]}}},
     {"type": "function", "function": {"name": "save_user_name", "description": "Foydalanuvchining ismini yoki familiyasini eslab qolish uchun kiritish. Agar kishi o'z ismini aytsa zudlik bilan ushbu API ni ishlating.", "parameters": {"type": "object", "properties": {"user_name": {"type": "string"}}, "required": ["user_name"]}}}
 ]
 
