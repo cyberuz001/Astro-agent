@@ -76,14 +76,17 @@ def say_uz(text):
     except Exception as e:
         broadcast(f"TTS xato: {e}", "SYSTEM")
 
+_global_vosk_model = None
 def transcribe(wav_path):
+    global _global_vosk_model
     from vosk import Model, KaldiRecognizer
     if not os.path.exists(MODEL_PATH) or not os.path.exists(wav_path): return ""
     try:
         if os.path.getsize(wav_path) < 1000: return ""
+        if _global_vosk_model is None:
+            _global_vosk_model = Model(MODEL_PATH)
         wf = wave.open(wav_path, "rb")
-        model = Model(MODEL_PATH)
-        rec = KaldiRecognizer(model, wf.getframerate())
+        rec = KaldiRecognizer(_global_vosk_model, wf.getframerate())
         rec.SetWords(True)
         while True:
             data = wf.readframes(4000)
@@ -94,6 +97,18 @@ def transcribe(wav_path):
     except Exception as e:
         broadcast(f"STT Error: {e}", "SYSTEM")
         return ""
+
+def save_to_db(transcript_lines):
+    import sqlite3
+    try:
+        db_dir = "/home/user/astro-agent/db"
+        os.makedirs(db_dir, exist_ok=True)
+        conn = sqlite3.connect(f"{db_dir}/astro_calls.db")
+        conn.execute("CREATE TABLE IF NOT EXISTS calls (id INTEGER PRIMARY KEY, ts DATETIME, transcript TEXT)")
+        conn.execute("INSERT INTO calls (ts, transcript) VALUES (datetime('now'), ?)", ("\\n".join(transcript_lines),))
+        conn.commit()
+    except Exception as e:
+        broadcast(f"DB Xato: {e}", "SYSTEM")
 
 def get_weather_and_time(location, iana_timezone="Asia/Tashkent"):
     time_str = ""
@@ -264,10 +279,15 @@ def main():
                 break
 
     agi_send("HANGUP")
+    try:
+        save_to_db(full_transcript)
+    except:
+        pass
+    
     if active_mission:
         try:
             with open("/tmp/agi_mission_result.txt","w") as f:
-                f.write("\n".join(full_transcript))
+                f.write("\\n".join(full_transcript))
             os.chmod("/tmp/agi_mission_result.txt", 0o666)
         except: pass
 
