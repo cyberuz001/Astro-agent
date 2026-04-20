@@ -31,7 +31,9 @@ def get_llm():
         model=prov.get("model", "google/gemini-2.0-flash-lite-001"),
         api_key=prov.get("key", ""),
         base_url=base,
-        temperature=0.1
+        temperature=0.1,
+        timeout=15,
+        max_retries=2
     )
 
 def agent_node(state: AgentState):
