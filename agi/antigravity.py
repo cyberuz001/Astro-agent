@@ -1,4 +1,4 @@
-#!/home/user/gemma-telegram-bot/venv/bin/python3
+#!/usr/bin/env python3
 """
 ASTRO AGI Voice Engine — Asterisk Gateway Interface
 Handles voice calls with AI-powered conversation in Uzbek
@@ -134,8 +134,8 @@ def run_cmd(cmd):
     except Exception as e: return f"Xato: {e}"
 
 TOOLS = [
-    {"type":"function","function":{"name":"run_terminal","description":"Tizim buyruqlari","parameters":{"type":"object","properties":{"command":{"type":"string"}},"required":["command"]}}},
-    {"type":"function","function":{"name":"get_weather_and_time","description":"Ixtiyoriy shahar yoki davlat bo'yicha HOZIRGI ANIQ VAQT, sana va ob-havo ma'lumotini olish. Masalan: Toshkent, London. IANA timezone ham yuborilishi shart (masalan 'Asia/Tashkent')","parameters":{"type":"object","properties":{"location":{"type":"string","description":"Shahar nomi"},"iana_timezone":{"type":"string","description":"IANA timezone, masalan, Asia/Tashkent, Europe/London"}},"required":["location", "iana_timezone"]}}}},"required":["location"]}}}
+    {"type": "function", "function": {"name": "run_terminal", "description": "Tizim buyruqlari", "parameters": {"type": "object", "properties": {"command": {"type": "string"}}, "required": ["command"]}}},
+    {"type": "function", "function": {"name": "get_weather_and_time", "description": "Ixtiyoriy shahar yoki davlat bo'yicha HOZIRGI ANIQ VAQT, sana va ob-havo ma'lumotini olish. Masalan: Toshkent, London. IANA timezone ham yuborilishi shart (masalan 'Asia/Tashkent')", "parameters": {"type": "object", "properties": {"location": {"type": "string", "description": "Shahar nomi"}, "iana_timezone": {"type": "string", "description": "IANA timezone, masalan, Asia/Tashkent, Europe/London"}}, "required": ["location", "iana_timezone"]}}}
 ]
 
 BASE_PROMPT = """Siz Astro — oliy darajadagi Avtonom Voice AI Agentsiz. Telefon qo'ng'irogidasiz!
