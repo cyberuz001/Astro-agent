@@ -141,5 +141,65 @@ def create_presentation(title: str, slides_content: str, output_path: str = "pre
     except Exception as e:
         return f"Xato prezentatsiya yaratishda: {e}"
 
+@tool
+def file_manager(action: str, filepath: str, content: str = "") -> str:
+    """Fayllar bilan ishlash uchun xavfsiz menejer. action='read', 'write', 'delete' bo'lishi mumkin."""
+    try:
+        if action == "read":
+            if not os.path.exists(filepath):
+                return f"Xato: Fayl topilmadi - {filepath}"
+            with open(filepath, "r", encoding="utf-8") as f:
+                return f.read()[:20000]
+        elif action == "write":
+            # Faylni yaratish yoki ustidan yozish
+            os.makedirs(os.path.dirname(os.path.abspath(filepath)), exist_ok=True)
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write(content)
+            return f"Muvaffaqiyatli: {filepath} yozildi."
+        elif action == "delete":
+            if os.path.exists(filepath):
+                os.remove(filepath)
+                return f"Muvaffaqiyatli: {filepath} o'chirildi."
+            return f"Xato: Fayl topilmadi - {filepath}"
+        else:
+            return "Xato: Noma'lum harakat (action). Faqat read, write, delete."
+    except Exception as e:
+        return f"Xato: file_manager ishida muammo: {e}"
+
+@tool
+def git_manager(action: str, branch: str = "main", message: str = "") -> str:
+    """Git omborlari bilan ishlash. action='status', 'commit', 'checkout', 'push', 'pull' bo'lishi mumkin.
+    commit qilish uchun message kerak. branch tanlash uchun branch parametri."""
+    try:
+        if action == "status":
+            r = subprocess.run("git status", shell=True, capture_output=True, text=True)
+            return r.stdout + r.stderr
+        elif action == "commit":
+            if not message:
+                return "Xato: commit qilish uchun message kerak."
+            subprocess.run("git add .", shell=True)
+            r = subprocess.run(f'git commit -m "{message}"', shell=True, capture_output=True, text=True)
+            return r.stdout + r.stderr
+        elif action == "checkout":
+            r = subprocess.run(f"git checkout -b {branch} || git checkout {branch}", shell=True, capture_output=True, text=True)
+            return r.stdout + r.stderr
+        elif action == "push":
+            r = subprocess.run(f"git push origin {branch}", shell=True, capture_output=True, text=True)
+            return r.stdout + r.stderr
+        elif action == "pull":
+            r = subprocess.run(f"git pull origin {branch}", shell=True, capture_output=True, text=True)
+            return r.stdout + r.stderr
+        else:
+            return "Xato: Noma'lum git buyrug'i."
+    except Exception as e:
+        return f"Xato: git_manager ishida muammo: {e}"
+
+@tool
+def delegate_task(agent_role: str, task_description: str) -> str:
+    """Yirik vazifalarni sub-agentlarga (masalan: 'frontend_developer', 'qa_engineer', 'devops') topshirish uchun.
+    Astro bu tool orqali asinxron ravishda sub-agentlardan javob kutadi."""
+    # Hozircha mock-implementatsiya bo'lib, kelajakda LangGraph multi-agent tarmog'iga ulanadi.
+    return f"[{agent_role} Sub-Agentiga vazifa yuborildi]: '{task_description}'. Agent tez orada tahlilni tugatadi. Iltimos bash_terminal orqali natijalarni (masalan test natijasi) tekshiring."
+
 # Core array exported for LangGraph
-ASTRO_TOOLS = [bash_terminal, get_weather_and_time, make_pbx_call, web_search_tool, pbx_admin, process_document, create_presentation]
+ASTRO_TOOLS = [bash_terminal, get_weather_and_time, make_pbx_call, web_search_tool, pbx_admin, process_document, create_presentation, file_manager, git_manager, delegate_task]
