@@ -24,32 +24,44 @@ try:
             return self.model
 
         def memorize(self, session_id: str, human_text: str, ai_text: str):
-            doc = f"User: {human_text}\nAstro: {ai_text}"
-            embedding = self._get_model().encode([doc]).tolist()
-            doc_id = f"{session_id}_{uuid.uuid4().hex[:6]}"
-            
-            self.collection.add(
-                ids=[doc_id],
-                embeddings=embedding,
-                documents=[doc],
-                metadatas=[{"session": session_id}]
-            )
+            def _async_memorize():
+                try:
+                    doc = f"User: {human_text}\nAstro: {ai_text}"
+                    embedding = self._get_model().encode([doc]).tolist()
+                    doc_id = f"{session_id}_{uuid.uuid4().hex[:6]}"
 
-        def recall(self, query: str, k=2) -> str:
-            if self.collection.count() == 0:
+                    self.collection.add(
+                        ids=[doc_id],
+                        embeddings=embedding,
+                        documents=[doc],
+                        metadatas=[{"session": session_id}]
+                    )
+                except Exception as e:
+                    pass
+            # Run in background to prevent slow embeddings from blocking agent
+            import threading
+            threading.Thread(target=_async_memorize, daemon=True).start()
+
+        def recall(self, query: str, k=3) -> str:
+            try:
+                count = self.collection.count()
+                if count == 0:
+                    return ""
+
+                query_emb = self._get_model().encode([query]).tolist()
+                results = self.collection.query(
+                    query_embeddings=query_emb,
+                    n_results=min(k, count)
+                )
+                if not results.get('documents') or not results['documents'][0]:
+                    return ""
+
+                context = "Xotiradan parchalar:\n"
+                for doc in results['documents'][0]:
+                    context += f"---\n{doc}\n"
+                return context
+            except Exception as e:
                 return ""
-            query_emb = self._get_model().encode([query]).tolist()
-            results = self.collection.query(
-                query_embeddings=query_emb,
-                n_results=min(k, self.collection.count())
-            )
-            if not results['documents'] or not results['documents'][0]:
-                return ""
-            
-            context = "Xotiradan parchalar:\n"
-            for doc in results['documents'][0]:
-                context += f"---\n{doc}\n"
-            return context
 
     memory_client = LongTermMemory()
 
