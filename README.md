@@ -10,14 +10,29 @@ Astro ochiq kodli va to'liq terminalga markazlashtirilgan sun'iy intellekt agent
 - **Mustaqillik (Zero-Permission)**: Astro barcha so'rovlarni ruxsat kutmasdan `bash_terminal` node'ida o'zi avtonom tarzda ishga tushiradi. Sudo kerak bo'lsa ochiq shifrdan olib avtomatik inyektsiya qiladi.
 - **VoIP Integratsiya**: Asterisk AI ovoz monitoringi ekran yonidan dinamik print qilinadi.
 
-## Ishga tushirish:
-```bash
-# Avval dependencies larni oling:
-bash install.sh
-textual
-langgraph
-chromadb
+## Interaktiv O'rnatish (Yangi xususiyat)
 
-# Agentni chaqirish:
+Astro o'rnatish jarayoni endi butunlay avtomatlashtirilgan va interaktiv CLI sehrgari yordamida ishlaydi.
+O'rnatish skriptini ishga tushirganingizda:
+1. **Asterisk So'rovi**: Skript sizdan Astro qo'ng'iroqlarni amalga oshirishi uchun Asterisk VoIP tizimi o'rnatilishini xohlaysizmi yo'qmi, deb so'raydi (y/n).
+2. **Raqamlar Kiritish**: Agar siz Asterisk o'rnatishni xohlasangiz, qancha raqam o'rnatmoqchi ekanligingizni va har bir raqamni kiritishingiz so'raladi (Masalan, 3 ta raqam: 101, 102, 103).
+3. **Avtomatik Konfiguratsiya**: Siz kiritgan raqamlar avtomatik ravishda Asterisk'ning `pjsip.conf` va `extensions.conf` fayllariga yoziladi. Parollar har bir raqam uchun odatiy "pass[raqam]" (masalan pass101) sifatida sozlanadi.
+4. **CLI Animatsiyasi**: Orqa fonda tizim paketlarini yuklash, virtual muhit (venv) yaratish va python kutubxonalarini o'rnatish jarayonlari chiroyli CLI spinner (animatsiya) orqali ko'rsatiladi.
+
+### O'rnatishni boshlash:
+```bash
+# Repozitoriyani klonlash (agar hali qilinmagan bo'lsa):
+# git clone <repository_url>
+# cd astro
+
+# O'rnatish skriptini ishga tushirish:
+bash install.sh
+```
+
+O'rnatish tugagandan so'ng ekranda yakuniy tasdiqlash xabari chiqadi va `/usr/local/bin/astro` orqali tizimga global bog'lanadi.
+
+## Agentni chaqirish:
+```bash
+# Astro-ni istalgan terminaldan ishga tushirish:
 astro run
 ```
