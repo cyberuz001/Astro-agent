@@ -54,18 +54,35 @@ def agent_node(state: AgentState):
     # Check if we should inject memory into the prompt
     messages = state["messages"]
     
-    # Simple context injection: if this is a human message directly to agent, pull memory
-    if isinstance(messages[-1], HumanMessage):
-        query = messages[-1].content
-        context = memory_client.recall(query)
+    # Robust context injection using full state knowledge (but mostly focusing on last user request)
+    last_human_query = ""
+    for msg in reversed(messages):
+        if isinstance(msg, HumanMessage):
+            last_human_query = msg.content
+            break
+
+    sys_prompt = """Siz ASTRO V2 Avtonom Tizim Administratorisiz. Siz quyidagi imkoniyatlarga egasiz:
+1. Butun kod bazasini o'qib tushuna olasiz (file_manager va bash_terminal orqali).
+2. Ko'p faylda bir vaqtda o'zgartirish kirita olasiz.
+3. Terminal buyruqlarini asinxron va bevosita ishga tushira olasiz (xatolarni topib o'zingiz tuzatasiz).
+4. Testlarni ishga tushirasiz va muammolarni bartaraf qilasiz (masalan: pytest ishlatib).
+5. Git bilan mukammal ishlaysiz (git_manager yordamida commit, branch, pull, push).
+6. GitHub/GitLab CI/CD pipelinelarini kuzatib xatolarni tahlil qila olasiz.
+7. Tashqi servislarga (MCP orqali) ulanasiz, API'larni chaqira olasiz.
+8. Sub-agentlarga (delegate_task orqali) vazifa topshira olasiz.
+9. Sessiya va xotirani to'liq saqlab, eski kontekstni eslab ishlaysiz.
+10. IDElar (VS Code, JetBrains), Slack va Terminalda universal ko'rinishda interaksiya qila olasiz.
+Sizga berilgan har qanday muammoni, agar xato chiqsa, inson aralashuvisiz o'zingiz tahlil qilib yechishga harakat qilasiz."""
+
+    if last_human_query:
+        context = memory_client.recall(last_human_query)
         if context:
-            # We don't overwrite history, we just temporarily inject it into the LLM system prompt
-            sys_msg = SystemMessage(content=f"Siz ASTRO V2 Agentsiz. Xotira parchasi:\n{context}\n\nYuqoridagi kontekstdan foydalaning.")
-            response = llm_with_tools.invoke([sys_msg] + messages)
-        else:
-            response = llm_with_tools.invoke(messages)
-    else:
-        response = llm_with_tools.invoke(messages)
+            sys_prompt += f"\n\nO'tmishdan xotira parchasi:\n{context}\n\nYuqoridagi kontekstdan foydalaning va faqatgina u sizning hozirgi vazifangizga mos kelsa inobatga oling."
+
+    # Always include the powerful system prompt to maintain the agent's persona
+    full_messages = [SystemMessage(content=sys_prompt)] + list(messages)
+
+    response = llm_with_tools.invoke(full_messages)
         
     return {"messages": [response]}
 
@@ -74,14 +91,25 @@ def reflection_node(state: AgentState):
     """If deep thinking is on, the agent reviews its own response."""
     llm = get_llm()
     messages = state["messages"]
-    last_msg = messages[-1].content
     
-    reflection_prompt = SystemMessage(content=f"""Sizning asl javobingiz: '{last_msg}'. 
-Iltimos, ushbu javob to'g'riligini mantiqan qayta tekshiring, xato bormi qidiring. Ekranga "[Self-Reflection] Xato topilmadi" deb xulosa chiqaring yoki yangilangan javobni yozing.""")
+    # Safely get the last AI message
+    last_msg_content = ""
+    for msg in reversed(messages):
+        if isinstance(msg, AIMessage) and msg.content:
+            last_msg_content = msg.content
+            break
+
+    if not last_msg_content:
+        return {"messages": []}
+
+    reflection_prompt = SystemMessage(content=f"""Siz ASTRO V2 ning Deep Think mantiqiy blokisiz.
+Agentning ushbu oxirgi javobi to'g'riligini va to'liqligini qayta tahlil qiling: '{last_msg_content}'.
+Agar u to'g'ri bo'lsa va foydalanuvchining savoliga aniq javob bergan bo'lsa, "[Self-Reflection] Tahlil qilindi, xato topilmadi" deb yozing.
+Agar xato, e'tibordan chetda qolgan narsa yoki to'liq bo'lmagan xulosa bo'lsa, uni to'g'rilang va izohlang.""")
     
     response = llm.invoke([reflection_prompt])
-    # Replace the last message with the reflection thought
-    return {"messages": [AIMessage(content=f"{last_msg}\n\n[Deep Think]: {response.content}")]}
+    # Append the deep thought trace
+    return {"messages": [AIMessage(content=f"[Deep Think]: {response.content}")]}
 
 def define_graph():
     workflow = StateGraph(AgentState)
