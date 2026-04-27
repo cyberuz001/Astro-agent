@@ -32,9 +32,9 @@ The Astro setup process is now fully automated via an interactive CLI wizard tha
 ### Getting Started
 
 ```bash
-# Clone the repository (if you haven't already):
-# git clone <repository_url>
-# cd astro
+# Clone the repository:
+git clone https://github.com/cyberuz001/Astro-agent.git
+cd Astro-agent
 
 # Launch the interactive installation script:
 bash install.sh
